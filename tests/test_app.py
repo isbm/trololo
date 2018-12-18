@@ -87,3 +87,4 @@ class TestTrololoApp(object):
             app._say_error(err_msg)
             assert stderr.called
             assert err_msg in stderr.call_args[0][0]
+            assert "\nError:\n  {}\n\n".format(err_msg) == stderr.call_args[0][0]
