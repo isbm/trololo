@@ -50,3 +50,25 @@ class TestTrololoApp(object):
             with pytest.raises(yaml.parser.ParserError) as ex:
                 app.run()
             assert "expected '<document start>', but found '<block mapping start>'" in str(ex)
+
+    @patch("trololo.app.TrololoClient", MagicMock())
+    def test_unknown_command_failure(self, app):
+        """
+        Test if runner fails with the STDERR of the unknown command.
+
+        :param app:
+        :return:
+        """
+        err_msg = "We only support 14400 bps connection"
+        app.cli_args = MagicMock()
+        app.cli_args.command = "bazinga"
+        stderr = MagicMock()
+        with patch("trololo.app.open", mock_open(read_data="foo: bar"), create=True):
+            exit = MagicMock(side_effect=Exception(err_msg))
+            with patch("sys.exit", exit):
+                with patch("sys.stderr.write", stderr):
+                    with pytest.raises(Exception) as ex:
+                        app.run()
+                    assert err_msg in str(ex)
+                    assert stderr.called
+                    assert "Unknown command: {}".format(app.cli_args.command) in stderr.call_args[0][0]
