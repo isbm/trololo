@@ -61,7 +61,7 @@ class TrololoClient(Trololo):
     """
     Client example.
     """
-    def list_boards(self):
+    def list_boards(self, *ids):
         """
         List available boards.
 
@@ -79,6 +79,8 @@ class TrololoClient(Trololo):
         boards = []
         if obj is not None:
             for board_json in obj:
-                boards.append(TrololoBoard.load(self, board_json))
+                board = TrololoBoard.load(self, board_json)
+                if ids and board.id in ids or not ids:
+                    boards.append(board)
 
         return boards

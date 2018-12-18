@@ -22,11 +22,11 @@ class TrololoApp(object):
                                               usage="""edward <command> [<args>]
 Available commands are:
     board    Operations with the boards on Trello.
-    column   Operations with the columns of specific board.
-    card     Operations with the cards of specific column on the board.
+    list     Operations with the lists of specific board.
+    card     Operations with the cards of specific list on the board.
 
 """)
-        self.parser.add_argument("command", help="Subcommand to run")
+        self.parser.add_argument("command", help="Subcommand to run", choices=["board", "list", "card"])
         self.cli_args = self.parser.parse_args(sys.argv[1:2])
         self.config = {}
         self._client = None
@@ -41,6 +41,22 @@ Available commands are:
         sys.stderr.write("\nError:\n  {}\n\n".format(msg))
         sys.exit(1)
 
+    def _get_arg_list(self, arg):
+        """
+        Converts comma-separated values into the list.
+
+        :param arg:
+        :return:
+        """
+        if not arg:
+            out = []
+        elif "," in arg:
+            out = [item for item in arg.split(",") if item.strip()]
+        else:
+            out = [arg]
+
+        return out
+
     def board(self):
         """
         Operations with the boards.
@@ -51,6 +67,7 @@ Available commands are:
         parser.add_argument("-l", "--list", help="List available boards", action="store_true")
         parser.add_argument("-f", "--format", help="Choose what format to display",
                             choices=["short", "expand"], default="short")
+        parser.add_argument("-d", "--display", help="Show only specific board(s). Values are comma-separated.")
         parser.add_argument("-a", "--add", help="Create a board", action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
@@ -58,7 +75,7 @@ Available commands are:
             self._say_error("Should be either list boards or add one.")
         elif args.list:
             out = []
-            boards = self._client.list_boards()
+            boards = self._client.list_boards(*self._get_arg_list(args.display))
             for idx, board in enumerate(boards):
                 idx += 1
                 out.append("{}. {}".format(str(idx).zfill(len(str(len(boards)))), board.name)[:80])
@@ -79,7 +96,7 @@ Available commands are:
         else:
             parser.print_help()
 
-    def column(self):
+    def list(self):
         """
         Operations with the columns in the board.
 
