@@ -49,6 +49,8 @@ Available commands are:
         """
         parser = argparse.ArgumentParser(description="operations with the boards")
         parser.add_argument("-l", "--list", help="List available boards", action="store_true")
+        parser.add_argument("-f", "--format", help="Choose what format to display",
+                            choices=["short", "expand"], default="short")
         parser.add_argument("-a", "--add", help="Create a board", action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
@@ -60,9 +62,16 @@ Available commands are:
             for idx, board in enumerate(boards):
                 idx += 1
                 out.append("{}. {}".format(str(idx).zfill(len(str(len(boards)))), board.name)[:80])
-                if board.descr:
-                    out.append("    {}".format(board.descr)[:80])
+                if board.desc:
+                    out.append("    {}".format(board.desc)[:80])
                 out.append("    Id: {}".format(board.id))
+                if args.format == "expand":
+                    lists = board.get_lists()
+                    if lists:
+                        out.append("    \\__")
+                    for list in lists:
+                        out.append('       "{}"'.format(list.name)[:80])
+                        out.append("       Id: {}".format(list.id))
                 out.append("-" * 80)
             print(os.linesep.join(out))
         elif args.add:
