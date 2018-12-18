@@ -13,11 +13,15 @@ class TrololoObject(object):
     _re_gr = re.compile(r"(.)([A-Z][a-z]+)")
     _re_sb = re.compile(r"([a-z0-9])([A-Z])")
 
+    __attrs__ = []
 
-    @staticmethod
-    def load(client, data):
+    def _set_attrs(self, data):
         """
-        Load board from the JSON data.
+        :return:
+        """
+        for attr in self.__attrs__:
+            setattr(self, self._uncamel(attr), data.get(attr))
+
     def _uncamel(self, name):
         """
         Convert "thisThing" to "this_thing".
@@ -27,17 +31,56 @@ class TrololoObject(object):
         """
         return self._re_sb.sub(r'\1_\2', self._re_gr.sub(r"\1_\2", name)).lower()
 
-        :param client: Client instance
-        :param data: JSON data
-        :return: Implemented Element object
+    @classmethod
+    def load(cls, client, data):
         """
-        raise NotImplementedError("Loading not implemented")
+        Create an instsance from self.
+
+        :param data:
+        :return:
+        """
+        return cls(client, **data)
+
+
+class TrololoCard(TrololoObject):
+    """
+    Trello card on the trello list of the board.
+    """
+    def __init__(self, client, **kwargs):
+        self.__client = client
+
+    def get_comments(self):
+        """
+        List comments (actions) of the cards.
+
+        :return:
+        """
+
+
+class TrololoList(TrololoObject):
+    """
+    Trello list on the trello Board.
+    """
+    __attrs__ = ["id", "name", "closed", "idBoard"]
+
+    def __init__(self, client, **kwargs):
+        self.__client = client
+        self._set_attrs(kwargs)
+
+    def get_cards(self):
+        """
+        Get cards in the list.
+
+        :return:
+        """
 
 
 class TrololoBoard(TrololoObject):
     """
     Trello Board.
     """
+    __attrs__ = ["id", "name", "desc", "shortUrl", "url", "dateLastView"]
+
     def __init__(self, client, **kwargs):
         """
         :param client:
@@ -45,27 +88,23 @@ class TrololoBoard(TrololoObject):
         :param name:
         """
         self.__client = client
-        self.id = kwargs.get("id")
-        self.name = kwargs.get("name")
-        self.descr = kwargs.get("desc")
-        self.link = kwargs.get("shortUrl")
-        self.url = kwargs.get("url")
-        self.last_viewed = kwargs.get("dateLastView")
+        self._set_attrs(kwargs)
 
-    def list_cards(self):
+        self._trello_lists = []
+        for list_obj in kwargs.get("lists", []):
+            self._trello_lists.append(TrololoList.load(self.__client, list_obj))
+
+    def get_lists(self):
+        """
+        Get lists.
+
+        :return:
+        """
+        return self._trello_lists
+
+    def get_cards(self, list_id):
         """
         List all cards.
 
         :return:
         """
-
-    @staticmethod
-    def load(client, data):
-        """
-        Create board object instance from JSON.
-
-        :param client: Client instance
-        :param data: JSON data
-        :return: TrololoBoard object
-        """
-        return TrololoBoard(client=client, **data)
