@@ -14,7 +14,9 @@ class TrololoObject(object):
         """
         Load board from the JSON data.
 
-        :param data:
-        :return:
+        :param client: Client instance
+        :param data: JSON data
+        :return: Implemented Element object
         """
         raise NotImplementedError("Loading not implemented")
+
