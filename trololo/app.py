@@ -10,6 +10,8 @@ import os
 import yaml
 
 import trololo.exceptions
+from trololo.client import TrololoClient
+
 
 class TrololoApp(object):
     """
@@ -52,6 +54,21 @@ Available commands are:
 
         if args.list and args.add:
             self._say_error("Should be either list boards or add one.")
+        elif args.list:
+            out = []
+            boards = self._client.list_boards()
+            for idx, board in enumerate(boards):
+                idx += 1
+                out.append("{}. {}".format(str(idx).zfill(len(str(len(boards)))), board.name)[:80])
+                if board.descr:
+                    out.append("    {}".format(board.descr)[:80])
+                out.append("    Id: {}".format(board.id))
+                out.append("-" * 80)
+            print(os.linesep.join(out))
+        elif args.add:
+            raise NotImplementedError("Want to add boards? Edward would happily accept your PR on Trololo! :-P")
+        else:
+            parser.print_help()
 
     def column(self):
         """
