@@ -35,7 +35,7 @@ class TrololoObject(object):
     @classmethod
     def load(cls, client, data):
         """
-        Create an instsance from self.
+        Create an instance from self.
 
         :param data:
         :return:
