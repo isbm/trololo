@@ -4,6 +4,7 @@ Lalala package contains main objects of Trello to work with.
 """
 
 import re
+from collections import OrderedDict
 
 
 class TrololoObject(object):
@@ -90,9 +91,10 @@ class TrololoBoard(TrololoObject):
         self.__client = client
         self._set_attrs(kwargs)
 
-        self._trello_lists = []
+        self._trello_lists = OrderedDict()
         for list_obj in kwargs.get("lists", []):
-            self._trello_lists.append(TrololoList.load(self.__client, list_obj))
+            t_list = TrololoList.load(self.__client, list_obj)
+            self._trello_lists[t_list.id] = t_list
 
     def get_lists(self):
         """
@@ -100,7 +102,7 @@ class TrololoBoard(TrololoObject):
 
         :return:
         """
-        return self._trello_lists
+        return self._trello_lists.values()
 
     def get_cards(self, list_id):
         """
