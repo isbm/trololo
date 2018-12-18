@@ -72,3 +72,18 @@ class TestTrololoApp(object):
                     assert err_msg in str(ex)
                     assert stderr.called
                     assert "Unknown command: {}".format(app.cli_args.command) in stderr.call_args[0][0]
+
+    @patch("sys.exit", MagicMock())
+    def test_error_output(self, app):
+        """
+        Test error output is up to format.
+
+        :param app:
+        :return:
+        """
+        err_msg = "Magnetic interference from Van Allen Belt"
+        stderr = MagicMock()
+        with patch("sys.stderr.write", stderr):
+            app._say_error(err_msg)
+            assert stderr.called
+            assert err_msg in stderr.call_args[0][0]
