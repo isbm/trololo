@@ -64,16 +64,16 @@ Available commands are:
         :return:
         """
         parser = argparse.ArgumentParser(description="operations with the boards")
-        parser.add_argument("-l", "--list", help="List available boards", action="store_true")
+        parser.add_argument("-s", "--show", help="Show available boards", action="store_true")
         parser.add_argument("-f", "--format", help="Choose what format to display",
                             choices=["short", "expand"], default="short")
         parser.add_argument("-d", "--display", help="Show only specific board(s). Values are comma-separated.")
         parser.add_argument("-a", "--add", help="Create a board", action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
-        if args.list and args.add:
-            self._say_error("Should be either list boards or add one.")
-        elif args.list:
+        if args.show and args.add:
+            self._say_error("Should be either show boards or add one.")
+        elif args.show:
             out = []
             boards = self._client.list_boards(*self._get_arg_list(args.display))
             for idx, board in enumerate(boards):
@@ -98,36 +98,36 @@ Available commands are:
 
     def list(self):
         """
-        Operations with the columns in the board.
+        Operations with the Trello Lists in the board.
 
         :return:
         """
-        parser = argparse.ArgumentParser(description="operations with the columns")
-        parser.add_argument("-l", "--list", help="List columns in the board", action="store_true")
-        parser.add_argument("-a", "--add", help="Add a column to the board", action="store_true")
+        parser = argparse.ArgumentParser(description="operations with the Trello lists")
+        parser.add_argument("-s", "--show", help="specify board ID to display Trello lists in it")
+        parser.add_argument("-a", "--add", help="add a list to the board", action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
-        if args.list and args.add:
-            self._say_error("Should be either list columns or add one.")
+        if args.show and args.add:
+            self._say_error("Should be either display lists or add one.")
 
     def card(self):
         """
-        Operations with the cards in the column.
+        Operations with the cards in the Trello List.
 
         :return:
         """
-        parser = argparse.ArgumentParser(description="operations with the cards in the column",
+        parser = argparse.ArgumentParser(description="operations with the cards in the Trello list",
                                          usage="edward card [-h] [-l] [-b] [-a] [-t]")
-        parser.add_argument("-l", "--list", help="List cards in the specified column", action="store_true")
-        parser.add_argument("-b", "--list-labels", help="List available labels of the card", action="store_true")
-        parser.add_argument("-a", "--add", help="Add a card", action="store_true")
-        parser.add_argument("-t", "--label", help="Add a one or more labels to the card (comma-separated)",
+        parser.add_argument("-s", "--show", help="Specify Trello list ID to display cards in it")
+        parser.add_argument("-b", "--list-labels", help="display cards with available labels", action="store_true")
+        parser.add_argument("-a", "--add", help="add a card", action="store_true")
+        parser.add_argument("-t", "--label", help="add a one or more labels to the card (comma-separated)",
                             action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
-        if args.list and args.add:
+        if args.show and args.add:
             self._say_error("Should be either list boards or add one.")
-        elif not args.list and not args.add:
+        elif not args.show and not args.add:
             parser.print_usage()
             sys.exit(1)
 
