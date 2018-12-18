@@ -5,6 +5,11 @@
 Main app "Edward" for Trololo lib.
 """
 
+import sys
+
 if __name__ == "__main__":
     from trololo.app import TrololoApp
-    TrololoApp().run()
+    try:
+        TrololoApp().run()
+    except Exception as err:
+        sys.stderr.write("General error: {}\n".format(err))
