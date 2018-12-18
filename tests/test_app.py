@@ -64,8 +64,7 @@ class TestTrololoApp(object):
         app.cli_args.command = "bazinga"
         stderr = MagicMock()
         with patch("trololo.app.open", mock_open(read_data="foo: bar"), create=True):
-            exit = MagicMock(side_effect=Exception(err_msg))
-            with patch("sys.exit", exit):
+            with patch("sys.exit", MagicMock(side_effect=Exception(err_msg))):
                 with patch("sys.stderr.write", stderr):
                     with pytest.raises(Exception) as ex:
                         app.run()
