@@ -3,16 +3,29 @@
 Lalala package contains main objects of Trello to work with.
 """
 
+import re
+
 
 class TrololoObject(object):
     """
     Interface for the Trololo objects.
     """
+    _re_gr = re.compile(r"(.)([A-Z][a-z]+)")
+    _re_sb = re.compile(r"([a-z0-9])([A-Z])")
+
 
     @staticmethod
     def load(client, data):
         """
         Load board from the JSON data.
+    def _uncamel(self, name):
+        """
+        Convert "thisThing" to "this_thing".
+
+        :param name:
+        :return:
+        """
+        return self._re_sb.sub(r'\1_\2', self._re_gr.sub(r"\1_\2", name)).lower()
 
         :param client: Client instance
         :param data: JSON data
