@@ -7,7 +7,9 @@ CLI app.
 import argparse
 import sys
 import os
+import yaml
 
+import trololo.exceptions
 
 class TrololoApp(object):
     """
@@ -24,6 +26,8 @@ Available commands are:
 """)
         self.parser.add_argument("command", help="Subcommand to run")
         self.cli_args = self.parser.parse_args(sys.argv[1:2])
+        self.config = {}
+        self._client = None
 
     def _say_error(self, msg):
         """
@@ -90,9 +94,20 @@ Available commands are:
 
         :return:
         """
+        cfg_file = "edward.conf"
+        if not os.path.exists(cfg_file):
+            raise trololo.exceptions.CLIError(
+                "Configuration file '{}' is not found in the current directory.".format(cfg_file))
+
+        with open(cfg_file) as cfg_h:
+            self.config = yaml.load(cfg_h)
+
         m_ref = self.__class__.__dict__.get(self.cli_args.command)
         if m_ref is None:
             sys.stderr.write("Unknown command: {}\n\n".format(self.cli_args.command))
             self.parser.print_help()
             sys.exit(os.EX_USAGE)
+
+        self._client = TrololoClient(**self.config)
+
         m_ref(self)
