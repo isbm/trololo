@@ -70,7 +70,7 @@ class TrololoClient(Trololo):
         query = {
             "filter": "all",
             "fields": "all",
-            "lists": "none",
+            "lists": "open",
             "memberships": "none",
             "organization": "false",
             "organization_fields": "name,displayName",
