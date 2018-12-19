@@ -47,8 +47,11 @@ class TrololoCard(TrololoObject):
     """
     Trello card on the trello list of the board.
     """
+    __attrs__ = ["id", "name", "url", "desc", "shortUrl", "dateLastActivity", "closed"]
+
     def __init__(self, client, **kwargs):
         self.__client = client
+        self._set_attrs(kwargs)
 
     def get_comments(self):
         """
@@ -67,6 +70,7 @@ class TrololoList(TrololoObject):
     def __init__(self, client, **kwargs):
         self.__client = client
         self._set_attrs(kwargs)
+        self._cards = []
 
     def get_cards(self):
         """
@@ -74,6 +78,18 @@ class TrololoList(TrololoObject):
 
         :return:
         """
+        query = {
+            "filter": "open",
+            "customFieldItems": "true"
+        }
+        self._cards = []  # Reset container
+        cards, err = self.__client._request("lists/{}/cards".format(self.id), query=query)
+
+        if cards:
+            for card in cards:
+                self._cards.append(TrololoCard.load(self.__client, card))
+
+        return self._cards
 
 
 class TrololoBoard(TrololoObject):
@@ -96,17 +112,10 @@ class TrololoBoard(TrololoObject):
             t_list = TrololoList.load(self.__client, list_obj)
             self._trello_lists[t_list.id] = t_list
 
-    def get_lists(self):
+    def get_lists(self, *lists):
         """
         Get lists.
 
         :return:
         """
         return self._trello_lists.values()
-
-    def get_cards(self, list_id):
-        """
-        List all cards.
-
-        :return:
-        """
