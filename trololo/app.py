@@ -92,7 +92,8 @@ Available commands are:
                 out.append("-" * 80)
             print(os.linesep.join(out))
         elif args.add:
-            raise NotImplementedError("Want to add boards? Edward would happily accept your PR on Trololo! :-P")
+            raise NotImplementedError("Want to add boards? Edward would happily accept "
+                                      "your PR on Trololo! :-P")
         else:
             parser.print_help()
 
@@ -109,6 +110,24 @@ Available commands are:
 
         if args.show and args.add:
             self._say_error("Should be either display lists or add one.")
+        elif args.show:
+            boards = self._client.list_boards(*self._get_arg_list(args.show))
+            if boards:
+                out = []
+                for board in boards:
+                    out.extend([board.name, "=" * len(board.name)])
+                    for idx, t_list in enumerate(board.get_lists()):
+                        idx += 1
+                        out.append("{}. {}".format(idx, t_list.name))
+                    out.append("")
+                print(os.linesep.join(out))
+            else:
+                raise trololo.exceptions.CLIError("Board with ID '{}' was not found.".format(args.show))
+        elif args.add:
+            raise NotImplementedError("Want to add lists to your boards? Sure thing! "
+                                      "Edward would happily accept your PR on Trololo! :-P")
+        else:
+            parser.print_help()
 
     def card(self):
         """
