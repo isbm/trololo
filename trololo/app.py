@@ -102,7 +102,7 @@ Available commands are:
         :return:
         """
         parser = argparse.ArgumentParser(description="operations with the Trello lists")
-        parser.add_argument("-s", "--show", help="specify board ID to display Trello lists in it")
+        parser.add_argument("-s", "--show", help="specify Trello list ID to display cards in it")
         parser.add_argument("-f", "--format", help="Choose what format to display",
                             choices=["short", "expand"], default="short")
         parser.add_argument("-a", "--add", help="add a list to the board", action="store_true")
@@ -111,27 +111,20 @@ Available commands are:
         if args.show and args.add:
             self._say_error("Should be either display lists or add one.")
         elif args.show:
-            boards = self._client.get_boards(*self._client.get_arg_list(args.show))
-            if boards:
+            lists = self._client.get_lists(*self._client.get_arg_list(args.show))
+            if lists:
                 out = []
-                for board in boards:
-                    out.extend([board.name, "=" * len(board.name)])
-                    for idx, t_list in enumerate(board.get_lists()):
-                        idx += 1
-                        out.append('{}. "{}"'.format(idx, t_list.name))
-                        out.append("   Id: {}".format(t_list.id))
-                        if args.format == "expand":
-                            cards = t_list.get_cards()
-                            if cards:
-                                out.append("    \\__")
-                            for card in cards:
-                                out.append('       "{}"'.format(card.name)[:80])
-                                out.append("       Id: {}".format(card.id))
-
+                for t_list in lists:
+                    out.extend([t_list.name, "=" * len(t_list.name)])
+                    cards = t_list.get_cards()
+                    if cards:
+                        out.append("    \\__")
+                        for idx, card in enumerate(cards):
+                            idx += 1
+                            out.append('       {}. "{}"'.format(str(idx).zfill(2), card.name)[:80])
+                            out.append("       Id: {}".format(card.id))
                     out.append("")
                 print(os.linesep.join(out))
-            else:
-                raise trololo.exceptions.CLIError("Board with ID '{}' was not found.".format(args.show))
         elif args.add:
             raise NotImplementedError("Want to add lists to your boards? Sure thing! "
                                       "Edward would happily accept your PR on Trololo! :-P")
