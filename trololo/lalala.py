@@ -4,7 +4,6 @@ Lalala package contains main objects of Trello to work with.
 """
 
 import re
-from collections import OrderedDict
 
 
 class TrololoObject(object):
@@ -15,6 +14,10 @@ class TrololoObject(object):
     _re_sb = re.compile(r"([a-z0-9])([A-Z])")
 
     __attrs__ = []
+
+    def __init__(self, client, **kwargs):
+        self._client = client
+        self._set_attrs(kwargs)
 
     def _set_attrs(self, data):
         """
@@ -49,20 +52,12 @@ class TrololoLabel(TrololoObject):
     """
     __attrs__ = ["id", "color", "name"]
 
-    def __init__(self, client, **kwargs):
-        self.__client = client
-        self._set_attrs(kwargs)
-
 
 class TrololoAction(TrololoObject):
     """
     Trello comment (action).
     """
     __attrs__ = ["id", "type", "date", "data"]
-
-    def __init__(self, client, **kwargs):
-        self.__client = client
-        self._set_attrs(kwargs)
 
     def get_text(self):
         """
@@ -79,10 +74,6 @@ class TrololoCard(TrololoObject):
     """
     __attrs__ = ["id", "name", "url", "desc", "shortUrl", "dateLastActivity", "closed"]
 
-    def __init__(self, client, **kwargs):
-        self.__client = client
-        self._set_attrs(kwargs)
-
     def get_actions(self):
         """
         List comments (actions) of the cards.
@@ -90,11 +81,8 @@ class TrololoCard(TrololoObject):
         :return:
         """
         actions = []
-        obj, err = self.__client._request("cards/{}/actions".format(self.id))
-
-        if obj:
-            for action in obj:
-                actions.append(TrololoAction.load(self.__client, action))
+        for action in self._client._request("cards/{}/actions".format(self.id)):
+            actions.append(TrololoAction.load(self._client, action))
 
         return actions
 
@@ -105,11 +93,8 @@ class TrololoCard(TrololoObject):
         :param text:
         :return:
         """
-        query = {
-            "text": text
-        }
-        obj, err = self.__client._request("cards/{}/actions/comments".format(self.id), query=query, method="POST")
-        return TrololoAction.load(self.__client, obj)
+        return TrololoAction.load(self._client, self._client._request("cards/{}/actions/comments".format(self.id),
+                                                                      query={"text": text}, method="POST"))
 
     def add_labels(self, *labels):
         """
@@ -125,9 +110,8 @@ class TrololoCard(TrololoObject):
                 id_labels.append(label.id)
             elif isinstance(label, str):
                 id_labels.append(label)
-        obj, err = self.__client._request("cards/{}".format(self.id),
-                                          query={"idLabels": ",".join(id_labels)},
-                                          method="PUT")
+        obj = self._client._request("cards/{}".format(self.id), query={"idLabels": ",".join(id_labels)}, method="PUT")
+
         return obj
 
 
@@ -136,10 +120,6 @@ class TrololoList(TrololoObject):
     Trello list on the trello Board.
     """
     __attrs__ = ["id", "name", "closed", "idBoard"]
-
-    def __init__(self, client, **kwargs):
-        self.__client = client
-        self._set_attrs(kwargs)
 
     def get_cards(self):
         """
@@ -153,11 +133,8 @@ class TrololoList(TrololoObject):
         }
 
         cards = []
-        obj, err = self.__client._request("lists/{}/cards".format(self.id), query=query)
-
-        if obj:
-            for card in obj:
-                cards.append(TrololoCard.load(self.__client, card))
+        for card in self._client._request("lists/{}/cards".format(self.id), query=query):
+            cards.append(TrololoCard.load(self._client, card))
 
         return cards
 
@@ -178,38 +155,27 @@ class TrololoList(TrololoObject):
             "pos": 0xffff,
         }
 
-        obj, err = self.__client._request("cards", query=query, method="POST")
-
-        return TrololoCard.load(self.__client, obj)
+        return TrololoCard.load(self._client, self._client._request("cards", query=query, method="POST"))
 
 
 class TrololoBoard(TrololoObject):
     """
     Trello Board.
     """
-    __attrs__ = ["id", "name", "desc", "shortUrl", "url", "dateLastView"]
+    __attrs__ = ["id", "name", "desc", "shortUrl", "url", "dateLastView", "lists"]
 
-    def __init__(self, client, **kwargs):
-        """
-        :param client:
-        :param id:
-        :param name:
-        """
-        self.__client = client
-        self._set_attrs(kwargs)
-
-        self._trello_lists = OrderedDict()
-        for list_obj in kwargs.get("lists", []):
-            t_list = TrololoList.load(self.__client, list_obj)
-            self._trello_lists[t_list.id] = t_list
-
-    def get_lists(self, *lists):
+    def get_lists(self):
         """
         Get lists.
 
         :return:
         """
-        return self._trello_lists.values()
+        b_lists = []
+        for list_obj in self.lists:
+            t_list = TrololoList.load(self._client, list_obj)
+            b_lists.append(t_list)
+
+        return b_lists
 
     def get_labels(self):
         """
@@ -218,9 +184,7 @@ class TrololoBoard(TrololoObject):
         :return:
         """
         labels = []
-        obj, err = self.__client._request("boards/{}/labels".format(self.id))
-        if obj:
-            for b_obj in obj:
-                labels.append(TrololoLabel.load(self.__client, b_obj))
+        for b_obj in self._client._request("boards/{}/labels".format(self.id)):
+            labels.append(TrololoLabel.load(self._client, b_obj))
 
         return labels

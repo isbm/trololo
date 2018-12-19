@@ -97,13 +97,12 @@ class TrololoClient(Trololo):
             "organization": "false",
             "organization_fields": "name,displayName",
         }
-        obj, err = self._request("members/{}/boards".format(self._api_uid), query=query)
+
         boards = []
-        if obj is not None:
-            for board_json in obj:
-                board = TrololoBoard.load(self, board_json)
-                if ids and board.id in ids or not ids:
-                    boards.append(board)
+        for board_json in self._request("members/{}/boards".format(self._api_uid), query=query) or []:
+            board = TrololoBoard.load(self, board_json)
+            if ids and board.id in ids or not ids:
+                boards.append(board)
 
         return boards
 
@@ -114,16 +113,10 @@ class TrololoClient(Trololo):
         :param ids:
         :return:
         """
-        query = {
-            "fields": "name,closed,idBoard"
-        }
-
         lists = []
         for list_id in ids:
-            obj, err = self._request("lists/{}".format(list_id), query=query)
-            if obj is not None:
-                lists.append(TrololoList.load(self, obj))
-
+            lists.append(TrololoList.load(self, self._request("lists/{}".format(list_id),
+                                                              query={"fields": "name,closed,idBoard"})))
         return lists
 
     def get_cards(self, *ids):
@@ -133,15 +126,8 @@ class TrololoClient(Trololo):
         :param ids:
         :return:
         """
-        query = {
-            "filter": "open",
-            "customFieldItems": "true"
-        }
-
         cards = []
         for card_id in ids:
-            obj, err = self._request("cards/{}".format(card_id), query=query)
-            if obj:
-                cards.append(TrololoCard.load(self, obj))
-
+            cards.append(TrololoCard.load(self, self._request("cards/{}".format(card_id),
+                                                              query={"filter": "open", "customFieldItems": "true"})))
         return cards
