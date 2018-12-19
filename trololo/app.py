@@ -137,6 +137,81 @@ Available commands are:
 
         :return:
         """
+
+        def show_cards(args):
+            """
+            Display cards in list.
+            :return:
+            """
+            out = []
+            for idx, t_list in enumerate(self._client.get_lists(*self._client.get_arg_list(args.list))):
+                idx += 1
+                out.append('{}. "{}"'.format(idx, t_list.name))
+                out.append("   Id: {}".format(t_list.id))
+                cards = t_list.get_cards()
+                if cards:
+                    out.append("    \\__")
+                for card in cards:
+                    out.append('       "{}"'.format(card.name)[:80])
+                    out.append("       Id: {}".format(card.id))
+            print(os.linesep.join(out))
+
+        def show_comments(args):
+            """
+            Display comments in the card.
+
+            :param args:
+            :return:
+            """
+            out = []
+            for idx, card in enumerate(self._client.get_cards(*self._client.get_arg_list(args.show))):
+                idx += 1
+                out.append('{}  "{}"'.format(str(idx).zfill(2), card.name))
+                out.append("    Id: {}".format(card.id))
+                actions = card.get_actions()
+                if actions:
+                    out.append("    \\__")
+                for action in actions:
+                    out.append('       "{}"'.format(action.get_text())[:80])
+                    out.append("       {}".format(action.date))
+                    out.append("       Id: {}".format(action.id))
+            print(os.linesep.join(out))
+
+        def add_card(args):
+            """
+            Add a card to the list.
+
+            :param args:
+            :return:
+            """
+            if not args.title:
+                self._say_error("Title of the card is missing")
+            elif not args.description:
+                self._say_error("Description of the card is missing.\n  NOTE: It is not originally required by Trello.")
+            out = []
+            for t_list in self._client.get_lists(args.add):
+                out.append('New card has been added to "{}'.format(t_list.name)[:79] + '"')
+                card = t_list.add_card(name=args.title, description=args.description)
+                if args.label:
+                    print("Adding labels")
+                    card.add_labels(*self._client.get_arg_list(args.label))
+            print(os.linesep.join(out))
+
+        def add_comment(args):
+            """
+            Add a comment to the card.
+
+            :param args:
+            :return:
+            """
+            out = []
+            for card in self._client.get_cards(args.card_id):
+                new_comment = card.add_comment(args.comment)
+                out.append("New comment has been added:")
+                out.append("=" * len(out[0]))
+                out.append("  {}".format(new_comment.get_text()))
+            print(os.linesep.join(out))
+
         parser = argparse.ArgumentParser(description="operations with the cards in the Trello list",
                                          usage="edward card [-h] [-l] [-b] [-a] [-t]")
         parser.add_argument("-l", "--list", help="specify Trello list ID to display cards in it")
@@ -161,53 +236,13 @@ Available commands are:
             sys.exit(1)
 
         if args.list:
-            out = []
-            for idx, t_list in enumerate(self._client.get_lists(*self._client.get_arg_list(args.list))):
-                idx += 1
-                out.append('{}. "{}"'.format(idx, t_list.name))
-                out.append("   Id: {}".format(t_list.id))
-                cards = t_list.get_cards()
-                if cards:
-                    out.append("    \\__")
-                for card in cards:
-                    out.append('       "{}"'.format(card.name)[:80])
-                    out.append("       Id: {}".format(card.id))
-            print(os.linesep.join(out))
+            show_cards(args)
         elif args.show:
-            out = []
-            for idx, card in enumerate(self._client.get_cards(*self._client.get_arg_list(args.show))):
-                idx += 1
-                out.append('{}  "{}"'.format(str(idx).zfill(2), card.name))
-                out.append("    Id: {}".format(card.id))
-                actions = card.get_actions()
-                if actions:
-                    out.append("    \\__")
-                for action in actions:
-                    out.append('       "{}"'.format(action.get_text())[:80])
-                    out.append("       {}".format(action.date))
-                    out.append("       Id: {}".format(action.id))
-            print(os.linesep.join(out))
+            show_comments(args)
         elif args.add:
-            if not args.title:
-                self._say_error("Title of the card is missing")
-            elif not args.description:
-                self._say_error("Description of the card is missing.\n  NOTE: It is not originally required by Trello.")
-            out = []
-            for t_list in self._client.get_lists(args.add):
-                out.append('New card has been added to "{}'.format(t_list.name)[:79] + '"')
-                card = t_list.add_card(name=args.title, description=args.description)
-                if args.label:
-                    print("Adding labels")
-                    card.add_labels(*self._client.get_arg_list(args.label))
-            print(os.linesep.join(out))
+            add_card(args)
         elif args.card_id and args.comment:
-            out = []
-            for card in self._client.get_cards(args.card_id):
-                new_comment = card.add_comment(args.comment)
-                out.append("New comment has been added:")
-                out.append("=" * len(out[0]))
-                out.append("  {}".format(new_comment.get_text()))
-            print(os.linesep.join(out))
+            add_comment(args)
 
     def run(self):
         """
@@ -230,5 +265,4 @@ Available commands are:
             sys.exit(os.EX_USAGE)
 
         self._client = TrololoClient(**self.config)
-
         m_ref(self)
