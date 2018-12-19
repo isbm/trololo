@@ -87,6 +87,19 @@ class TrololoCard(TrololoObject):
 
         return actions
 
+    def add_comment(self, text):
+        """
+        Add a comment to this card.
+
+        :param text:
+        :return:
+        """
+        query = {
+            "text": text
+        }
+        obj, err = self.__client._request("cards/{}/actions/comments".format(self.id), query=query, method="POST")
+        return TrololoAction.load(self.__client, obj)
+
 
 class TrololoList(TrololoObject):
     """

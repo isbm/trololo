@@ -142,7 +142,7 @@ Available commands are:
                             action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
-        cli_st = len([_ for _ in [args.list, args.show, args.add] if _]) - 1
+        cli_st = len([_ for _ in [args.list, args.show, args.add, args.comment] if _]) - 1
         if cli_st > 0:
             parser.print_usage()
             self._say_error("Should you display cards in the list, comments in the card, or add a card.")
@@ -176,6 +176,14 @@ Available commands are:
                     out.append('       "{}"'.format(action.get_text())[:80])
                     out.append("       {}".format(action.date))
                     out.append("       Id: {}".format(action.id))
+            print(os.linesep.join(out))
+        elif args.card_id and args.comment:
+            out = []
+            for card in self._client.get_cards(args.card_id):
+                new_comment = card.add_comment(args.comment)
+                out.append("New comment has been added:")
+                out.append("=" * len(out[0]))
+                out.append("  {}".format(new_comment.get_text()))
             print(os.linesep.join(out))
 
     def run(self):
