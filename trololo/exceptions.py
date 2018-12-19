@@ -25,3 +25,9 @@ class CLIError(Exception):
     """
     CLI error
     """
+
+
+class DataMapperError(Exception):
+    """
+    Error of the data mapper
+    """
