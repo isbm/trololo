@@ -124,7 +124,7 @@ class TrololoClient(Trololo):
 
     def get_cards(self, *ids):
         """
-        Get cards by IDs.
+        Get cards by list IDs.
 
         :param ids:
         :return:
@@ -136,9 +136,8 @@ class TrololoClient(Trololo):
 
         cards = []
         for card_id in ids:
-            obj, err = self._request("lists/{}/cards".format(card_id), query=query)
+            obj, err = self._request("cards/{}".format(card_id), query=query)
             if obj:
-                for card in obj:
-                    cards.append(TrololoCard.load(self, card))
+                cards.append(TrololoCard.load(self, obj))
 
         return cards
