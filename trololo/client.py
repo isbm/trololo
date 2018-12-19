@@ -9,7 +9,7 @@ import http
 import requests
 import urllib.parse
 
-from trololo.lalala import TrololoBoard, TrololoList
+from trololo.lalala import TrololoBoard, TrololoList, TrololoCard
 from trololo import exceptions
 
 
@@ -121,3 +121,24 @@ class TrololoClient(Trololo):
                 lists.append(TrololoList.load(self, obj))
 
         return lists
+
+    def get_cards(self, *ids):
+        """
+        Get cards by IDs.
+
+        :param ids:
+        :return:
+        """
+        query = {
+            "filter": "open",
+            "customFieldItems": "true"
+        }
+
+        cards = []
+        for card_id in ids:
+            obj, err = self._request("lists/{}/cards".format(card_id), query=query)
+            if obj:
+                for card in obj:
+                    cards.append(TrololoCard.load(self, card))
+
+        return cards
