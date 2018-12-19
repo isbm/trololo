@@ -165,9 +165,17 @@ Available commands are:
             print(os.linesep.join(out))
         elif args.show:
             out = []
-            for idx, card in enumerate(self._client.get_comments(*self._client.get_arg_list(args.show))):
+            for idx, card in enumerate(self._client.get_cards(*self._client.get_arg_list(args.show))):
                 idx += 1
-
+                out.append('{}  "{}"'.format(str(idx).zfill(2), card.name))
+                out.append("    Id: {}".format(card.id))
+                actions = card.get_actions()
+                if actions:
+                    out.append("    \\__")
+                for action in actions:
+                    out.append('       "{}"'.format(action.get_text())[:80])
+                    out.append("       {}".format(action.date))
+                    out.append("       Id: {}".format(action.id))
             print(os.linesep.join(out))
 
     def run(self):

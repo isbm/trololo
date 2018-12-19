@@ -43,6 +43,25 @@ class TrololoObject(object):
         return cls(client, **data)
 
 
+class TrololoAction(TrololoObject):
+    """
+    Trello comment (action).
+    """
+    __attrs__ = ["id", "type", "date", "data"]
+
+    def __init__(self, client, **kwargs):
+        self.__client = client
+        self._set_attrs(kwargs)
+
+    def get_text(self):
+        """
+        Get comment's text.
+
+        :return:
+        """
+        return self.data.get("text", "* empty *")
+
+
 class TrololoCard(TrololoObject):
     """
     Trello card on the trello list of the board.
@@ -53,12 +72,20 @@ class TrololoCard(TrololoObject):
         self.__client = client
         self._set_attrs(kwargs)
 
-    def get_comments(self):
+    def get_actions(self):
         """
         List comments (actions) of the cards.
 
         :return:
         """
+        actions = []
+        obj, err = self.__client._request("cards/{}/actions".format(self.id))
+
+        if obj:
+            for action in obj:
+                actions.append(TrololoAction.load(self.__client, action))
+
+        return actions
 
 
 class TrololoList(TrololoObject):
@@ -70,7 +97,6 @@ class TrololoList(TrololoObject):
     def __init__(self, client, **kwargs):
         self.__client = client
         self._set_attrs(kwargs)
-        self._cards = []
 
     def get_cards(self):
         """
@@ -82,14 +108,15 @@ class TrololoList(TrololoObject):
             "filter": "open",
             "customFieldItems": "true"
         }
-        self._cards = []  # Reset container
-        cards, err = self.__client._request("lists/{}/cards".format(self.id), query=query)
 
-        if cards:
-            for card in cards:
-                self._cards.append(TrololoCard.load(self.__client, card))
+        cards = []
+        obj, err = self.__client._request("lists/{}/cards".format(self.id), query=query)
 
-        return self._cards
+        if obj:
+            for card in obj:
+                cards.append(TrololoCard.load(self.__client, card))
+
+        return cards
 
 
 class TrololoBoard(TrololoObject):
