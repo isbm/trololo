@@ -17,14 +17,8 @@ class TrololoObject(object):
 
     def __init__(self, client, **kwargs):
         self._client = client
-        self._set_attrs(kwargs)
-
-    def _set_attrs(self, data):
-        """
-        :return:
-        """
         for attr in self.__attrs__:
-            setattr(self, self._uncamel(attr), data.get(attr))
+            setattr(self, self._uncamel(attr), kwargs.get(attr))
 
     def _uncamel(self, name):
         """
