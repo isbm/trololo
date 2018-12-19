@@ -50,12 +50,16 @@ class Trololo(object):
             raise exceptions.UnknownResourceError("{} at {}".format(response.text, url))
 
         try:
-            obj, err = response.json(), None
+            obj = response.json()
         except Exception as ex:
             sys.stderr.write("JSON error: {}\n".format(ex))
-            obj, err = None, response.text
+            sys.stderr.write("\n--- response / trace ---\n")
+            sys.stderr.write(response.text)
+            sys.stderr.write("\n------------------------\n\n")
 
-        return obj, err
+            raise exceptions.RequestError("Oops... Looks like we're done at the moment. Look above.")
+
+        return obj
 
 
 class TrololoClient(Trololo):

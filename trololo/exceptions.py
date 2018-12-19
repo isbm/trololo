@@ -15,6 +15,12 @@ class UnknownResourceError(Exception):
     """
 
 
+class RequestError(Exception):
+    """
+    Trello request error
+    """
+
+
 class CLIError(Exception):
     """
     CLI error
