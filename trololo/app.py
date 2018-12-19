@@ -41,22 +41,6 @@ Available commands are:
         sys.stderr.write("\nError:\n  {}\n\n".format(msg))
         sys.exit(1)
 
-    def _get_arg_list(self, arg):
-        """
-        Converts comma-separated values into the list.
-
-        :param arg:
-        :return:
-        """
-        if not arg:
-            out = []
-        elif "," in arg:
-            out = [item for item in arg.split(",") if item.strip()]
-        else:
-            out = [arg]
-
-        return out
-
     def board(self):
         """
         Operations with the boards.
@@ -75,7 +59,7 @@ Available commands are:
             self._say_error("Should be either show boards or add one.")
         elif args.show:
             out = []
-            boards = self._client.list_boards(*self._get_arg_list(args.display))
+            boards = self._client.list_boards(*self._client.get_arg_list(args.display))
             for idx, board in enumerate(boards):
                 idx += 1
                 out.append("{}. {}".format(str(idx).zfill(len(str(len(boards)))), board.name)[:80])
@@ -111,7 +95,7 @@ Available commands are:
         if args.show and args.add:
             self._say_error("Should be either display lists or add one.")
         elif args.show:
-            boards = self._client.list_boards(*self._get_arg_list(args.show))
+            boards = self._client.list_boards(*self._client.get_arg_list(args.show))
             if boards:
                 out = []
                 for board in boards:

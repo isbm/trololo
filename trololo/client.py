@@ -62,6 +62,23 @@ class TrololoClient(Trololo):
     """
     Client example.
     """
+    @staticmethod
+    def get_arg_list(arg):
+        """
+        Converts comma-separated values into the list.
+
+        :param arg:
+        :return:
+        """
+        if not arg:
+            out = []
+        elif "," in arg:
+            out = [item for item in arg.split(",") if item.strip()]
+        else:
+            out = [arg]
+
+        return out
+
     def list_boards(self, *ids):
         """
         List available boards.
