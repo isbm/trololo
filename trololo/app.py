@@ -47,18 +47,13 @@ Available commands are:
 
         :return:
         """
-        parser = argparse.ArgumentParser(description="operations with the boards")
-        parser.add_argument("-s", "--show", help="show available boards", action="store_true")
-        parser.add_argument("-f", "--format", help="choose what format to display",
-                            choices=["short", "expand"], default="short")
-        parser.add_argument("-d", "--display", help="show only specific board(s). Values are comma-separated.")
-        parser.add_argument("-l", "--labels", help="specify ID of a Trello board to list its labels")
-        parser.add_argument("-a", "--add", help="create a board", action="store_true")
-        args = parser.parse_args(sys.argv[2:])
+        def show_labels(args):
+            """
+            Show labels.
 
-        if args.show and args.add:
-            self._say_error("Should be either show boards or add one.")
-        elif args.labels:
+            :param args:
+            :return:
+            """
             out = []
             boards = self._client.get_boards(*self._client.get_arg_list(args.labels))
             for idx, board in enumerate(boards):
@@ -71,7 +66,14 @@ Available commands are:
                     out.append('       "{}" ({})'.format(label.name, label.color))
                     out.append("       Id: {}".format(label.id))
             print(os.linesep.join(out))
-        elif args.show:
+
+        def show_boards(args):
+            """
+            Show available boards.
+
+            :param args:
+            :return:
+            """
             out = []
             boards = self._client.get_boards(*self._client.get_arg_list(args.display))
             for idx, board in enumerate(boards):
@@ -89,9 +91,24 @@ Available commands are:
                         out.append("       Id: {}".format(t_list.id))
                 out.append("-" * 80)
             print(os.linesep.join(out))
+
+        parser = argparse.ArgumentParser(description="operations with the boards")
+        parser.add_argument("-s", "--show", help="show available boards", action="store_true")
+        parser.add_argument("-f", "--format", help="choose what format to display",
+                            choices=["short", "expand"], default="short")
+        parser.add_argument("-d", "--display", help="show only specific board(s). Values are comma-separated.")
+        parser.add_argument("-l", "--labels", help="specify ID of a Trello board to list its labels")
+        parser.add_argument("-a", "--add", help="create a board", action="store_true")
+        args = parser.parse_args(sys.argv[2:])
+
+        if args.show and args.add:
+            self._say_error("Should be either show boards or add one.")
+        elif args.labels:
+            show_labels(args)
+        elif args.show:
+            show_boards(args)
         elif args.add:
-            raise NotImplementedError("Want to add boards? Edward would happily accept "
-                                      "your PR on Trololo! :-P")
+            raise NotImplementedError("Want to add boards? Edward would happily accept your PR on Trololo! :-P")
         else:
             parser.print_help()
 
@@ -101,16 +118,16 @@ Available commands are:
 
         :return:
         """
-        parser = argparse.ArgumentParser(description="operations with the Trello lists")
-        parser.add_argument("-s", "--show", help="specify Trello list ID to display cards in it")
-        parser.add_argument("-f", "--format", help="Choose what format to display",
-                            choices=["short", "expand"], default="short")
-        parser.add_argument("-a", "--add", help="add a list to the board", action="store_true")
-        args = parser.parse_args(sys.argv[2:])
 
-        if args.show and args.add:
-            self._say_error("Should be either display lists or add one.")
-        elif args.show:
+        def show_cards(args):
+            """
+            Show cards in the list.
+
+            NOTE: This is duplicate functionality. The same can be achieved by "edward cards -l [list-id]".
+
+            :param args:
+            :return:
+            """
             lists = self._client.get_lists(*self._client.get_arg_list(args.show))
             if lists:
                 out = []
@@ -125,6 +142,18 @@ Available commands are:
                             out.append("       Id: {}".format(card.id))
                     out.append("")
                 print(os.linesep.join(out))
+
+        parser = argparse.ArgumentParser(description="operations with the Trello lists")
+        parser.add_argument("-s", "--show", help="specify Trello list ID to display cards in it")
+        parser.add_argument("-f", "--format", help="Choose what format to display",
+                            choices=["short", "expand"], default="short")
+        parser.add_argument("-a", "--add", help="add a list to the board", action="store_true")
+        args = parser.parse_args(sys.argv[2:])
+
+        if args.show and args.add:
+            self._say_error("Should be either display lists or add one.")
+        elif args.show:
+            show_cards(args)
         elif args.add:
             raise NotImplementedError("Want to add lists to your boards? Sure thing! "
                                       "Edward would happily accept your PR on Trololo! :-P")
