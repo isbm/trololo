@@ -39,6 +39,7 @@ class TestTrololoApp(object):
 
         assert "Configuration file 'edward.conf' is not found in the current directory." in str(ex)
 
+    @patch("os.path.exists", MagicMock(return_value=True))
     def test_exception_on_config_failure(self, app):
         """
         Test if runner raises an exception, once configuration is wrong.
@@ -51,6 +52,7 @@ class TestTrololoApp(object):
                 app.run()
             assert "expected '<document start>', but found '<block mapping start>'" in str(ex)
 
+    @patch("os.path.exists", MagicMock(return_value=True))
     @patch("trololo.app.TrololoClient", MagicMock())
     def test_unknown_command_failure(self, app):
         """
