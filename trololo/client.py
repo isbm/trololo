@@ -17,7 +17,8 @@ class Trololo(object):
     """
     Trololo client.
     """
-    def __init__(self, key, token):
+    def __init__(self, uid, key, token):
+        self._api_uid = uid
         self._api_key = key
         self._api_token = token
         self._api_root_url = "https://api.trello.com/1/"
@@ -75,7 +76,7 @@ class TrololoClient(Trololo):
             "organization": "false",
             "organization_fields": "name,displayName",
         }
-        obj, err = self._request("members/the_bofh/boards", query=query)
+        obj, err = self._request("members/{}/boards".format(self._api_uid), query=query)
         boards = []
         if obj is not None:
             for board_json in obj:

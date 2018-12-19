@@ -1,4 +1,5 @@
 # Tell Edward how to connect to the Trello
 
+uid: "YOUR TRELLO ID"
 key: "YOUR KEY HERE"
 token: "YOUR TOKEN HERE"
