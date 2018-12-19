@@ -9,7 +9,7 @@ import http
 import requests
 import urllib.parse
 
-from trololo.lalala import TrololoBoard
+from trololo.lalala import TrololoBoard, TrololoList
 from trololo import exceptions
 
 
@@ -102,3 +102,22 @@ class TrololoClient(Trololo):
                     boards.append(board)
 
         return boards
+
+    def get_lists(self, *ids):
+        """
+        Get lists by IDs.
+
+        :param ids:
+        :return:
+        """
+        query = {
+            "fields": "name,closed,idBoard"
+        }
+
+        lists = []
+        for list_id in ids:
+            obj, err = self._request("lists/{}".format(list_id), query=query)
+            if obj is not None:
+                lists.append(TrololoList.load(self, obj))
+
+        return lists

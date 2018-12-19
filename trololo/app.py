@@ -70,9 +70,9 @@ Available commands are:
                     lists = board.get_lists()
                     if lists:
                         out.append("    \\__")
-                    for list in lists:
-                        out.append('       "{}"'.format(list.name)[:80])
-                        out.append("       Id: {}".format(list.id))
+                    for t_list in lists:
+                        out.append('       "{}"'.format(t_list.name)[:80])
+                        out.append("       Id: {}".format(t_list.id))
                 out.append("-" * 80)
             print(os.linesep.join(out))
         elif args.add:
@@ -132,18 +132,43 @@ Available commands are:
         """
         parser = argparse.ArgumentParser(description="operations with the cards in the Trello list",
                                          usage="edward card [-h] [-l] [-b] [-a] [-t]")
-        parser.add_argument("-s", "--show", help="Specify Trello list ID to display cards in it")
+        parser.add_argument("-l", "--list", help="specify Trello list ID to display cards in it")
+        parser.add_argument("-s", "--show", help="specify Trello Card ID to display comments in it")
         parser.add_argument("-b", "--list-labels", help="display cards with available labels", action="store_true")
         parser.add_argument("-a", "--add", help="add a card", action="store_true")
+        parser.add_argument("-i", "--card-id", help="specify Trello Card ID for modification", default=None)
+        parser.add_argument("-c", "--comment", help="specify comment text for the card", default=None)
         parser.add_argument("-t", "--label", help="add a one or more labels to the card (comma-separated)",
                             action="store_true")
         args = parser.parse_args(sys.argv[2:])
 
-        if args.show and args.add:
-            self._say_error("Should be either list boards or add one.")
-        elif not args.show and not args.add:
+        cli_st = len([_ for _ in [args.list, args.show, args.add] if _]) - 1
+        if cli_st > 0:
             parser.print_usage()
+            self._say_error("Should you display cards in the list, comments in the card, or add a card.")
+        elif cli_st < 0:
+            parser.print_help()
             sys.exit(1)
+
+        if args.list:
+            out = []
+            for idx, t_list in enumerate(self._client.get_lists(*self._client.get_arg_list(args.list))):
+                idx += 1
+                out.append('{}. "{}"'.format(idx, t_list.name))
+                out.append("   Id: {}".format(t_list.id))
+                cards = t_list.get_cards()
+                if cards:
+                    out.append("    \\__")
+                for card in cards:
+                    out.append('       "{}"'.format(card.name)[:80])
+                    out.append("       Id: {}".format(card.id))
+            print(os.linesep.join(out))
+        elif args.show:
+            out = []
+            for idx, card in enumerate(self._client.get_comments(*self._client.get_arg_list(args.show))):
+                idx += 1
+
+            print(os.linesep.join(out))
 
     def run(self):
         """
