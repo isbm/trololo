@@ -79,7 +79,7 @@ class TrololoClient(Trololo):
 
         return out
 
-    def list_boards(self, *ids):
+    def get_boards(self, *ids):
         """
         List available boards.
 

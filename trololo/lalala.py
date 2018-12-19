@@ -43,6 +43,17 @@ class TrololoObject(object):
         return cls(client, **data)
 
 
+class TrololoLabel(TrololoObject):
+    """
+    Trello label on the board.
+    """
+    __attrs__ = ["id", "color", "name"]
+
+    def __init__(self, client, **kwargs):
+        self.__client = client
+        self._set_attrs(kwargs)
+
+
 class TrololoAction(TrololoObject):
     """
     Trello comment (action).
@@ -100,6 +111,25 @@ class TrololoCard(TrololoObject):
         obj, err = self.__client._request("cards/{}/actions/comments".format(self.id), query=query, method="POST")
         return TrololoAction.load(self.__client, obj)
 
+    def add_labels(self, *labels):
+        """
+        Add labels to this card.
+        A labels is an array of key/value (text/color) dicts or TrololoLabel objects.
+
+        :param labels:
+        :return:
+        """
+        id_labels = []
+        for label in labels:
+            if isinstance(labels, TrololoLabel):
+                id_labels.append(label.id)
+            elif isinstance(label, str):
+                id_labels.append(label)
+        obj, err = self.__client._request("cards/{}".format(self.id),
+                                          query={"idLabels": ",".join(id_labels)},
+                                          method="PUT")
+        return obj
+
 
 class TrololoList(TrololoObject):
     """
@@ -131,6 +161,27 @@ class TrololoList(TrololoObject):
 
         return cards
 
+    def add_card(self, name, description):
+        """
+        Add a card to this list.
+
+        :param title:
+        :param description:
+        :param labels:
+        :return:
+        """
+        query = {
+            "idList": self.id,
+            "keepFromSource": "all",
+            "name": name,
+            "desc": description,
+            "pos": 0xffff,
+        }
+
+        obj, err = self.__client._request("cards", query=query, method="POST")
+
+        return TrololoCard.load(self.__client, obj)
+
 
 class TrololoBoard(TrololoObject):
     """
@@ -159,3 +210,17 @@ class TrololoBoard(TrololoObject):
         :return:
         """
         return self._trello_lists.values()
+
+    def get_labels(self):
+        """
+        Get labels.
+
+        :return:
+        """
+        labels = []
+        obj, err = self.__client._request("boards/{}/labels".format(self.id))
+        if obj:
+            for b_obj in obj:
+                labels.append(TrololoLabel.load(self.__client, b_obj))
+
+        return labels
