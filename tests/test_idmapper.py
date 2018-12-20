@@ -4,7 +4,6 @@ Unit test for ID mapper
 """
 
 import pytest
-import yaml.parser
 from unittest.mock import MagicMock, patch, mock_open
 
 from trololo.idmapper import TrololoIdMapper
@@ -122,3 +121,14 @@ class TestIDMapper(object):
         s_res = mapper.get_id_by_name("Star Wars")
 
         assert s_res[TrololoIdMapper.S_LABEL].pop() == "splat"
+
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_is_id(self):
+        """
+        Test is_id function
+
+        :return:
+        """
+
+        assert TrololoIdMapper.is_id("deadbeef")
+        assert not TrololoIdMapper.is_id("disks spinning backwards - toggle the hemisphere jumper")
