@@ -30,3 +30,12 @@ class TestLalalaLib(object):
         assert obj.number == 123
         assert obj.some_float == .01
         assert obj.inner.hidden.array[1] == 2
+
+    def test_trololo_object_uncamel(self):
+        """
+        Test un-camel method.
+
+        :return:
+        """
+
+        assert TrololoObject("/tmp")._uncamel("OppaGangnamStyle") == "oppa_gangnam_style"
