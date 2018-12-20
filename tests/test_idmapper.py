@@ -96,3 +96,16 @@ class TestIDMapper(object):
 
         assert s_res[TrololoIdMapper.S_ID].pop() == "deadbeef"
 
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_find_plain_id_not_found(self):
+        """
+        Test id not found, if it is not a number.
+
+        :return:
+        """
+
+        with pytest.raises(trololo.exceptions.DataMapperError) as ex:
+            TrololoIdMapper("/tmp").get_id_by_name("solaris")
+
+        assert "No corresponding ID has been found" in str(ex)
+
