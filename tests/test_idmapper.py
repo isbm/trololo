@@ -69,3 +69,17 @@ class TestIDMapper(object):
 
         assert s_res[TrololoIdMapper.S_CARD].pop() == "leia_card"
 
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_find_action(self):
+        """
+        Test action object is added and found.
+
+        :return:
+        """
+
+        mapper = TrololoIdMapper("/tmp")
+        mapper.add_action(TrololoAction.load(None, {"id": "rrrawwwrrr", "data": {"text": "Chewbacca in action"}}))
+        s_res = mapper.get_id_by_name("Chew")
+
+        assert s_res[TrololoIdMapper.S_ACTION].pop() == "rrrawwwrrr"
+
