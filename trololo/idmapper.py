@@ -136,17 +136,19 @@ class TrololoIdMapper(object):
         """
         return (search_result.get("id") or search_result[section] or set(' ')).pop().strip()
 
-    def save(self):
+    def save(self, skip=False):
         """
         Save data map to the disk.
 
+        :param skip: Helper to avoid check every time if there is something to save.
         :return:
         """
-        try:
-            with open(self.__path, "wb") as dmh:
-                pickle.dump(self.__datamap, dmh)
-        except Exception as ex:
-            raise trololo.exceptions.DataMapperError("Error while saving data map: {}".format(ex))
+        if not skip:
+            try:
+                with open(self.__path, "wb") as dmh:
+                    pickle.dump(self.__datamap, dmh)
+            except Exception as ex:
+                raise trololo.exceptions.DataMapperError("Error while saving data map: {}".format(ex))
 
     def load(self):
         """
