@@ -109,3 +109,16 @@ class TestIDMapper(object):
 
         assert "No corresponding ID has been found" in str(ex)
 
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_find_label(self):
+        """
+        Test label object is added and found.
+
+        :return:
+        """
+
+        mapper = TrololoIdMapper("/tmp")
+        mapper.add_label(TrololoLabel.load(None, {"id": "splat", "name": "Star Wars"}))
+        s_res = mapper.get_id_by_name("Star Wars")
+
+        assert s_res[TrololoIdMapper.S_LABEL].pop() == "splat"
