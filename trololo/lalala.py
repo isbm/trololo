@@ -156,7 +156,7 @@ class TrololoList(TrololoObject):
             "keepFromSource": "all",
             "name": name,
             "desc": description,
-            "pos": 0xffff,
+            "pos": "top",
         }
 
         return TrololoCard.load(self._client, self._client._request("cards", query=query, method="POST"))
