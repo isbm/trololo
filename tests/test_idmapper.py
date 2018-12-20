@@ -8,7 +8,7 @@ import yaml.parser
 from unittest.mock import MagicMock, patch, mock_open
 
 from trololo.idmapper import TrololoIdMapper
-from trololo.lalala import TrololoBoard
+from trololo.lalala import TrololoBoard, TrololoList
 import trololo.exceptions
 
 
@@ -40,4 +40,18 @@ class TestIDMapper(object):
         s_res = mapper.get_id_by_name("Millennium Falcon")
 
         assert s_res[TrololoIdMapper.S_BOARD].pop() == "han_solo"
+
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_find_list(self):
+        """
+        Test list object is added and found.
+
+        :return:
+        """
+
+        mapper = TrololoIdMapper("/tmp")
+        mapper.add_list(TrololoList.load(None, {"id": "dw_list", "name": "Darth Wader's visit list"}))
+        s_res = mapper.get_id_by_name("Darth")  # Looking by part of the name!
+
+        assert s_res[TrololoIdMapper.S_LIST].pop() == "dw_list"
 
