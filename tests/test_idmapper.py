@@ -8,7 +8,7 @@ import yaml.parser
 from unittest.mock import MagicMock, patch, mock_open
 
 from trololo.idmapper import TrololoIdMapper
-from trololo.lalala import TrololoBoard, TrololoList
+from trololo.lalala import TrololoBoard, TrololoList, TrololoCard, TrololoAction, TrololoLabel
 import trololo.exceptions
 
 
@@ -51,7 +51,21 @@ class TestIDMapper(object):
 
         mapper = TrololoIdMapper("/tmp")
         mapper.add_list(TrololoList.load(None, {"id": "dw_list", "name": "Darth Wader's visit list"}))
-        s_res = mapper.get_id_by_name("Darth")  # Looking by part of the name!
+        s_res = mapper.get_id_by_name("Darth")  # Looking by the part of the name!
 
         assert s_res[TrololoIdMapper.S_LIST].pop() == "dw_list"
+
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_find_card(self):
+        """
+        Test card object is added and found.
+
+        :return:
+        """
+
+        mapper = TrololoIdMapper("/tmp")
+        mapper.add_card(TrololoCard.load(None, {"id": "leia_card", "name": "Princess Leia's visit card"}))
+        s_res = mapper.get_id_by_name("Princess Leia")
+
+        assert s_res[TrololoIdMapper.S_CARD].pop() == "leia_card"
 
