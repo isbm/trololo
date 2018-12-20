@@ -7,6 +7,11 @@ Main app "Edward" for Trololo lib.
 
 if __name__ == "__main__":
     import sys
+
+    if sys.version_info.major != 3 or sys.version_info.minor < 5:
+        sys.stderr.write("Requirement error: Python 3.5+ required.\n")
+        sys.exit(1)
+
     from trololo.app import TrololoApp
 
     try:
