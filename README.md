@@ -3,7 +3,7 @@
 CLI program for Trello hacks.
 
 Program is called "Edward", by the name
-of famous Soviet singer Edward Khil, who performed vocalise ["Trololo"](https://www.youtube.com/watch?v=OfaCTg_2les)
+of famous Soviet singer [Edward Khil](https://en.wikipedia.org/wiki/Eduard_Khil), who performed vocalise ["Trololo"](https://www.youtube.com/watch?v=OfaCTg_2les)
 (I am very happy because I am finally back home).
 
 ## Requirements
