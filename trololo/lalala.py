@@ -115,9 +115,10 @@ class TrololoCard(TrololoObject):
                 id_labels.append(label.id)
             elif isinstance(label, str):
                 id_labels.append(label)
-        obj = self._client._request("cards/{}".format(self.id), query={"idLabels": ",".join(id_labels)}, method="PUT")
 
-        return obj
+        return TrololoLabel.load(self._client, self._client._request("cards/{}".format(self.id),
+                                                                     query={"idLabels": ",".join(id_labels)},
+                                                                     method="PUT"))
 
 
 class TrololoList(TrololoObject):
