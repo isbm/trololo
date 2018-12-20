@@ -78,7 +78,7 @@ class TrololoIdMapper(object):
         :param action:
         :return:
         """
-        self.__datamap["actions"].setdefault(action.name, set()).add(action.id)
+        self.__datamap["actions"].setdefault(action.get_text(), set()).add(action.id)
 
     def is_id(self, text):
         """
