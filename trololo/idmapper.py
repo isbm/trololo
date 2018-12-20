@@ -17,6 +17,12 @@ class TrololoIdMapper(object):
     """
 
     DATA_MAPPER_FILE = "edward.bin"
+    S_BOARD = "boards"
+    S_LIST = "lists"
+    S_CARD = "cards"
+    S_LABEL = "labels"
+    S_ACTION = "actions"
+    S_ID = "id"
 
     def __init__(self, path):
         """
@@ -25,12 +31,12 @@ class TrololoIdMapper(object):
         :param path:
         """
         self.__datamap = {
-            "boards": {},
-            "lists": {},
-            "cards": {},
-            "labels": {},
-            "actions": {},
-            "id": {},
+            self.S_BOARD: {},
+            self.S_LIST: {},
+            self.S_CARD: {},
+            self.S_LABEL: {},
+            self.S_ACTION: {},
+            self.S_ID: {},
         }
         self.__path = os.path.join(path, self.DATA_MAPPER_FILE)
         self.load()
@@ -42,7 +48,7 @@ class TrololoIdMapper(object):
         :param board:
         :return:
         """
-        self.__datamap["boards"].setdefault(board.name, set()).add(board.id)
+        self.__datamap[self.S_BOARD].setdefault(board.name, set()).add(board.id)
 
     def add_list(self, t_list: TrololoList) -> None:
         """
@@ -51,7 +57,7 @@ class TrololoIdMapper(object):
         :param t_list:
         :return:
         """
-        self.__datamap["lists"].setdefault(t_list.name, set()).add(t_list.id)
+        self.__datamap[self.S_LIST].setdefault(t_list.name, set()).add(t_list.id)
 
     def add_card(self, card: TrololoCard) -> None:
         """
@@ -60,7 +66,7 @@ class TrololoIdMapper(object):
         :param card:
         :return:
         """
-        self.__datamap["cards"].setdefault(card.name, set()).add(card.id)
+        self.__datamap[self.S_CARD].setdefault(card.name, set()).add(card.id)
 
     def add_label(self, label: TrololoLabel) -> None:
         """
@@ -69,7 +75,7 @@ class TrololoIdMapper(object):
         :param label:
         :return:
         """
-        self.__datamap["labels"].setdefault(label.name, set()).add(label.id)
+        self.__datamap[self.S_LABEL].setdefault(label.name, set()).add(label.id)
 
     def add_action(self, action: TrololoAction) -> None:
         """
@@ -78,9 +84,10 @@ class TrololoIdMapper(object):
         :param action:
         :return:
         """
-        self.__datamap["actions"].setdefault(action.get_text(), set()).add(action.id)
+        self.__datamap[self.S_ACTION].setdefault(action.get_text(), set()).add(action.id)
 
-    def is_id(self, text):
+    @staticmethod
+    def is_id(text):
         """
         Check if the text is actually an ID.
 
@@ -116,34 +123,38 @@ class TrololoIdMapper(object):
                         ret[section].update(ids)
                         if len(ret[section]) > 1:
                             # Nope, try just IDs instead.
-                            raise trololo.exceptions.DataMapperError("More than one ID references to the same text")
+                            raise trololo.exceptions.DataMapperError("More than one ID references to the same text. "
+                                                                     "Please use just plain IDs.")
                         found = True
         else:
             ret["id"].add(text)
             found = True
 
         if not found:
-            raise trololo.exceptions.DataMapperError("No corresponding ID has been found.")
+            raise trololo.exceptions.DataMapperError("No corresponding ID has been found. "
+                                                     "Please either browse the board to collect more data about it "
+                                                     "or use plain IDs instead.")
 
         return ret
 
-    def take_from(self, search_result, section):
+    def take_from(self, search_result: dict, section: str) -> dict:
         """
         Finds an ID from the search result by section.
 
         :param search_result:
+        :param section:
         :return:
         """
-        return (search_result.get("id") or search_result[section] or set(' ')).pop().strip()
+        return (search_result.get(self.S_ID) or search_result[section] or set(' ')).pop().strip()
 
-    def save(self, skip=False):
+    def save(self, action=True):
         """
         Save data map to the disk.
 
         :param skip: Helper to avoid check every time if there is something to save.
         :return:
         """
-        if not skip:
+        if action:
             try:
                 with open(self.__path, "wb") as dmh:
                     pickle.dump(self.__datamap, dmh)
