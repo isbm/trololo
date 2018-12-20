@@ -320,7 +320,7 @@ Available commands are:
             :return:
             """
             out = []
-            for card in self._client.get_cards(args.card_id):
+            for card in self._client.get_cards(self._get_ids(args.card_id, TrololoIdMapper.S_CARD)):
                 self._datamapper.add_card(card)
                 new_comment = card.add_comment(args.comment)
                 self._datamapper.add_action(new_comment)
