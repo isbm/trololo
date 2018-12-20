@@ -86,7 +86,7 @@ class TestIDMapper(object):
     @patch("sys.stderr.write", MagicMock())
     def test_add_find_plain_id(self):
         """
-        Test action object is added and found.
+        Test id found.
 
         :return:
         """
