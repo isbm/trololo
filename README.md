@@ -13,8 +13,16 @@ For general use and packaging Python 3.5+ is required.
 For running unit tests, PyTest is required.
 
 
-## Usage
+# Usage
 
+Everything currently should be executed in the current directory,
+unless packaged otherwise.
+
+## Setup
+
+You should obtain Trello API key and API tokens, also know your Trello
+UID name. Copy `edward.conf.sample` to `edward.conf` in the same
+directory and update it with the earlier mentioned data.
 
 ## Accessing Trello elements
 
