@@ -150,3 +150,17 @@ class TestIDMapper(object):
             mapper.save()
             assert dumper.called
             assert dumper.call_args[0][0][TrololoIdMapper.S_BOARD].get(_name).pop() == _id
+
+    @patch("sys.stderr.write", MagicMock())
+    @patch("trololo.idmapper.open", mock_open(), create=True)
+    @patch("pickle.dump", MagicMock(side_effect=IOError("Electricians made popcorn in the power supply")))
+    def test_save_dump_failure(self):
+        """
+        Test save failure.
+
+        :return:
+        """
+
+        with pytest.raises(Exception) as ex:
+            TrololoIdMapper("/tmp").save()
+        assert "popcorn" in str(ex)
