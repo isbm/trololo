@@ -101,6 +101,36 @@ Available commands are:
                 self._datamapper.save()
             print(os.linesep.join(out))
 
+        def show_board_map(args):
+            """
+            Display the entire board map.
+
+            :param args:
+            :return:
+            """
+            board_id = self._datamapper.take_from(self._datamapper.get_id_by_name(args.display), "boards")
+            out = []
+            ofs = " " * 4
+            for board in self._client.get_boards(board_id):
+                out.extend(["{}".format(board.name), "=" * len(board.name)])
+                lists = board.get_lists()
+                if lists:
+                    out.append(" \\__")
+                for list in lists:
+                    out.extend(["", "{}{}".format(ofs, list.name), "{}{}".format(ofs, "-" * len(list.name))])
+                    cards = list.get_cards()
+                    if cards:
+                        out.append(" {}\\__".format(ofs))
+                    for card in cards:
+                        out.append("{}### {}".format(ofs * 2, card.name))
+                        actions = card.get_actions()
+                        if actions:
+                            out.append(" {}\\__".format(ofs * 2))
+                        for action in actions:
+                            out.append("{}- {}".format(ofs * 3, action.get_text()))
+                out.append("")
+            print(os.linesep.join(out))
+
         parser = argparse.ArgumentParser(description="operations with the boards")
         parser.add_argument("-s", "--show", help="show available boards", action="store_true")
         parser.add_argument("-f", "--format", help="choose what format to display",
@@ -122,20 +152,7 @@ Available commands are:
         elif args.add:
             raise NotImplementedError("Want to add boards? Edward would happily accept your PR on Trololo! :-P")
         elif args.display:
-            board_id = self._datamapper.take_from(self._datamapper.get_id_by_name(args.display), "boards")
-            out = []
-            for board in self._client.get_boards(board_id):
-                out.append("{}".format(board.name))
-                out.append(" \\__")
-                for list in board.get_lists():
-                    out.append("  {}".format(list.name))
-                    out.append("   \\__")
-                    for card in list.get_cards():
-                        out.append("    {}".format(card.name))
-                        out.append("     \\__")
-                        for action in card.get_actions():
-                            out.append("      {}".format(action.get_text()))
-            print(os.linesep.join(out))
+            show_board_map(args)
         else:
             parser.print_help()
 
