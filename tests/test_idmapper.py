@@ -132,3 +132,21 @@ class TestIDMapper(object):
 
         assert TrololoIdMapper.is_id("deadbeef")
         assert not TrololoIdMapper.is_id("disks spinning backwards - toggle the hemisphere jumper")
+
+    @patch("sys.stderr.write", MagicMock())
+    @patch("trololo.idmapper.open", mock_open(), create=True)
+    def test_save_dump(self):
+        """
+        Test save.
+
+        :return:
+        """
+        _name = "Loop in redundant loopback"
+        _id = "networking"
+        mapper = TrololoIdMapper("/tmp")
+        mapper.add_board(TrololoBoard.load(None, {"id": _id, "name": _name}))
+        dumper = MagicMock()
+        with patch("pickle.dump", dumper):
+            mapper.save()
+            assert dumper.called
+            assert dumper.call_args[0][0][TrololoIdMapper.S_BOARD].get(_name).pop() == _id
