@@ -11,6 +11,7 @@ import yaml
 
 import trololo.exceptions
 from trololo.client import TrololoClient
+from trololo.idmapper import TrololoIdMapper
 
 
 class TrololoApp(object):
@@ -30,6 +31,7 @@ Available commands are:
         self.cli_args = self.parser.parse_args(sys.argv[1:2])
         self.config = {}
         self._client = None
+        self._datamapper = None
 
     def _say_error(self, msg):
         """
@@ -58,13 +60,16 @@ Available commands are:
             boards = self._client.get_boards(*self._client.get_arg_list(args.labels))
             for idx, board in enumerate(boards):
                 idx += 1
+                self._datamapper.add_board(board)
                 out.append("{}. {}".format(str(idx).zfill(len(str(len(boards)))), board.name)[:80])
                 labels = board.get_labels()
                 if labels:
                     out.append("    \\__")
                 for label in labels:
+                    self._datamapper.add_label(label)
                     out.append('       "{}" ({})'.format(label.name, label.color))
                     out.append("       Id: {}".format(label.id))
+                self._datamapper.save()
             print(os.linesep.join(out))
 
         def show_boards(args):
@@ -78,6 +83,7 @@ Available commands are:
             boards = self._client.get_boards(*self._client.get_arg_list(args.display))
             for idx, board in enumerate(boards):
                 idx += 1
+                self._datamapper.add_board(board)
                 out.append("{}. {}".format(str(idx).zfill(len(str(len(boards)))), board.name)[:80])
                 if board.desc:
                     out.append("    {}".format(board.desc)[:80])
@@ -87,16 +93,22 @@ Available commands are:
                     if lists:
                         out.append("    \\__")
                     for t_list in lists:
+                        self._datamapper.add_list(t_list)
                         out.append('       "{}"'.format(t_list.name)[:80])
                         out.append("       Id: {}".format(t_list.id))
                 out.append("-" * 80)
+            if out:
+                self._datamapper.save()
             print(os.linesep.join(out))
 
         parser = argparse.ArgumentParser(description="operations with the boards")
         parser.add_argument("-s", "--show", help="show available boards", action="store_true")
         parser.add_argument("-f", "--format", help="choose what format to display",
                             choices=["short", "expand"], default="short")
-        parser.add_argument("-d", "--display", help="show only specific board(s). Values are comma-separated.")
+        parser.add_argument("-d", "--display", help="show the entire map of the specific board. "
+                                                    "Either pass an ID to display a board, "
+                                                    "or pass a name of the board or a part of the name "
+                                                    "(if you feeling lucky). WARNING: this can be lengthy!")
         parser.add_argument("-l", "--labels", help="specify ID of a Trello board to list its labels")
         parser.add_argument("-a", "--add", help="create a board", action="store_true")
         args = parser.parse_args(sys.argv[2:])
@@ -109,6 +121,21 @@ Available commands are:
             show_boards(args)
         elif args.add:
             raise NotImplementedError("Want to add boards? Edward would happily accept your PR on Trololo! :-P")
+        elif args.display:
+            board_id = self._datamapper.take_from(self._datamapper.get_id_by_name(args.display), "boards")
+            out = []
+            for board in self._client.get_boards(board_id):
+                out.append("{}".format(board.name))
+                out.append(" \\__")
+                for list in board.get_lists():
+                    out.append("  {}".format(list.name))
+                    out.append("   \\__")
+                    for card in list.get_cards():
+                        out.append("    {}".format(card.name))
+                        out.append("     \\__")
+                        for action in card.get_actions():
+                            out.append("      {}".format(action.get_text()))
+            print(os.linesep.join(out))
         else:
             parser.print_help()
 
@@ -294,4 +321,6 @@ Available commands are:
             sys.exit(os.EX_USAGE)
 
         self._client = TrololoClient(**self.config)
+        self._datamapper = TrololoIdMapper("")
+
         m_ref(self)
