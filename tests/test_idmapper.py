@@ -83,3 +83,16 @@ class TestIDMapper(object):
 
         assert s_res[TrololoIdMapper.S_ACTION].pop() == "rrrawwwrrr"
 
+    @patch("sys.stderr.write", MagicMock())
+    def test_add_find_plain_id(self):
+        """
+        Test action object is added and found.
+
+        :return:
+        """
+
+        mapper = TrololoIdMapper("/tmp")
+        s_res = mapper.get_id_by_name("deadbeef")
+
+        assert s_res[TrololoIdMapper.S_ID].pop() == "deadbeef"
+
