@@ -69,7 +69,7 @@ Available commands are:
                     self._datamapper.add_label(label)
                     out.append('       "{}" ({})'.format(label.name, label.color))
                     out.append("       Id: {}".format(label.id))
-                self._datamapper.save()
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         def show_boards(args):
@@ -97,8 +97,7 @@ Available commands are:
                         out.append('       "{}"'.format(t_list.name)[:80])
                         out.append("       Id: {}".format(t_list.id))
                 out.append("-" * 80)
-            if out:
-                self._datamapper.save()
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         def show_board_map(args):
@@ -112,23 +111,28 @@ Available commands are:
             out = []
             ofs = " " * 4
             for board in self._client.get_boards(board_id):
+                self._datamapper.add_board(board)
                 out.extend(["{}".format(board.name), "=" * len(board.name)])
                 lists = board.get_lists()
                 if lists:
                     out.append(" \\__")
-                for list in lists:
-                    out.extend(["", "{}{}".format(ofs, list.name), "{}{}".format(ofs, "-" * len(list.name))])
-                    cards = list.get_cards()
+                for t_list in lists:
+                    self._datamapper.add_list(t_list)
+                    out.extend(["", "{}{}".format(ofs, t_list.name), "{}{}".format(ofs, "-" * len(t_list.name))])
+                    cards = t_list.get_cards()
                     if cards:
                         out.append(" {}\\__".format(ofs))
                     for card in cards:
+                        self._datamapper.add_card(card)
                         out.append("{}### {}".format(ofs * 2, card.name))
                         actions = card.get_actions()
                         if actions:
                             out.append(" {}\\__".format(ofs * 2))
                         for action in actions:
+                            self._datamapper.add_action(action)
                             out.append("{}- {}".format(ofs * 3, action.get_text()))
                 out.append("")
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         parser = argparse.ArgumentParser(description="operations with the boards")
@@ -172,20 +176,21 @@ Available commands are:
             :param args:
             :return:
             """
-            lists = self._client.get_lists(*self._client.get_arg_list(args.show))
-            if lists:
-                out = []
-                for t_list in lists:
-                    out.extend([t_list.name, "=" * len(t_list.name)])
-                    cards = t_list.get_cards()
-                    if cards:
-                        out.append("    \\__")
-                        for idx, card in enumerate(cards):
-                            idx += 1
-                            out.append('       {}. "{}"'.format(str(idx).zfill(2), card.name)[:80])
-                            out.append("       Id: {}".format(card.id))
-                    out.append("")
-                print(os.linesep.join(out))
+            out = []
+            for t_list in self._client.get_lists(*self._client.get_arg_list(args.show)):
+                self._datamapper.add_list(t_list)
+                out.extend([t_list.name, "=" * len(t_list.name)])
+                cards = t_list.get_cards()
+                if cards:
+                    out.append("    \\__")
+                    for idx, card in enumerate(cards):
+                        self._datamapper.add_card(card)
+                        idx += 1
+                        out.append('       {}. "{}"'.format(str(idx).zfill(2), card.name)[:80])
+                        out.append("       Id: {}".format(card.id))
+                out.append("")
+            self._datamapper.save(bool(out))
+            print(os.linesep.join(out))
 
         parser = argparse.ArgumentParser(description="operations with the Trello lists")
         parser.add_argument("-s", "--show", help="specify Trello list ID to display cards in it")
@@ -219,14 +224,17 @@ Available commands are:
             out = []
             for idx, t_list in enumerate(self._client.get_lists(*self._client.get_arg_list(args.list))):
                 idx += 1
+                self._datamapper.add_list(t_list)
                 out.append('{}. "{}"'.format(idx, t_list.name))
                 out.append("   Id: {}".format(t_list.id))
                 cards = t_list.get_cards()
                 if cards:
                     out.append("    \\__")
                 for card in cards:
+                    self._datamapper.add_card(card)
                     out.append('       "{}"'.format(card.name)[:80])
                     out.append("       Id: {}".format(card.id))
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         def show_comments(args):
@@ -239,15 +247,18 @@ Available commands are:
             out = []
             for idx, card in enumerate(self._client.get_cards(*self._client.get_arg_list(args.show))):
                 idx += 1
+                self._datamapper.add_card(card)
                 out.append('{}  "{}"'.format(str(idx).zfill(2), card.name))
                 out.append("    Id: {}".format(card.id))
                 actions = card.get_actions()
                 if actions:
                     out.append("    \\__")
                 for action in actions:
+                    self._datamapper.add_action(action)
                     out.append('       "{}"'.format(action.get_text())[:80])
                     out.append("       {}".format(action.date))
                     out.append("       Id: {}".format(action.id))
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         def add_card(args):
@@ -265,9 +276,11 @@ Available commands are:
             for t_list in self._client.get_lists(args.add):
                 out.append('New card has been added to "{}'.format(t_list.name)[:79] + '"')
                 card = t_list.add_card(name=args.title, description=args.description)
+                self._datamapper.add_card(card)
                 if args.label:
                     print("Adding labels")
                     card.add_labels(*self._client.get_arg_list(args.label))
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         def add_comment(args):
@@ -279,10 +292,13 @@ Available commands are:
             """
             out = []
             for card in self._client.get_cards(args.card_id):
+                self._datamapper.add_card(card)
                 new_comment = card.add_comment(args.comment)
+                self._datamapper.add_action(new_comment)
                 out.append("New comment has been added:")
                 out.append("=" * len(out[0]))
                 out.append("  {}".format(new_comment.get_text()))
+            self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
         parser = argparse.ArgumentParser(description="operations with the cards in the Trello list",
