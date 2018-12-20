@@ -43,6 +43,35 @@ Available commands are:
         sys.stderr.write("\nError:\n  {}\n\n".format(msg))
         sys.exit(1)
 
+    def _get_ids(self, argdata, section):
+        """
+        Get IDs or search for them in argument data.
+
+        :param argdata: comma-separated ids or text.
+        :return: list of ids
+        """
+        out = []
+        if argdata is None:
+            argdata = ""
+
+        if " " in argdata:
+            obj_id = self._datamapper.take_from(self._datamapper.get_id_by_name(argdata), section)
+            if obj_id:
+                out.append(obj_id)
+        elif "," in argdata:
+            # List of IDs, unless typo in the name
+            for obj_id in self._client.get_arg_list(argdata):
+                if self._datamapper.is_id(obj_id):
+                    out.append(obj_id)
+        elif self._datamapper.is_id(argdata):
+            out.append(argdata)
+        elif argdata:
+            obj_id = self._datamapper.take_from(self._datamapper.get_id_by_name(argdata), section)
+            if obj_id:
+                out.append(obj_id)
+
+        return out
+
     def board(self):
         """
         Operations with the boards.
@@ -57,7 +86,7 @@ Available commands are:
             :return:
             """
             out = []
-            boards = self._client.get_boards(*self._client.get_arg_list(args.labels))
+            boards = self._client.get_boards(*self._get_ids(args.labels, TrololoIdMapper.S_BOARD))
             for idx, board in enumerate(boards):
                 idx += 1
                 self._datamapper.add_board(board)
@@ -80,7 +109,7 @@ Available commands are:
             :return:
             """
             out = []
-            boards = self._client.get_boards(*self._client.get_arg_list(args.display))
+            boards = self._client.get_boards(*self._get_ids(args.display, TrololoIdMapper.S_BOARD))
             for idx, board in enumerate(boards):
                 idx += 1
                 self._datamapper.add_board(board)
@@ -177,7 +206,7 @@ Available commands are:
             :return:
             """
             out = []
-            for t_list in self._client.get_lists(*self._client.get_arg_list(args.show)):
+            for t_list in self._client.get_lists(*self._get_ids(args.show, TrololoIdMapper.S_LIST)):
                 self._datamapper.add_list(t_list)
                 out.extend([t_list.name, "=" * len(t_list.name)])
                 cards = t_list.get_cards()
@@ -222,7 +251,7 @@ Available commands are:
             :return:
             """
             out = []
-            for idx, t_list in enumerate(self._client.get_lists(*self._client.get_arg_list(args.list))):
+            for idx, t_list in enumerate(self._client.get_lists(*self._get_ids(args.list, TrololoIdMapper.S_LIST))):
                 idx += 1
                 self._datamapper.add_list(t_list)
                 out.append('{}. "{}"'.format(idx, t_list.name))
@@ -245,7 +274,7 @@ Available commands are:
             :return:
             """
             out = []
-            for idx, card in enumerate(self._client.get_cards(*self._client.get_arg_list(args.show))):
+            for idx, card in enumerate(self._client.get_cards(*self._get_ids(args.show, TrololoIdMapper.S_CARD))):
                 idx += 1
                 self._datamapper.add_card(card)
                 out.append('{}  "{}"'.format(str(idx).zfill(2), card.name))
@@ -273,13 +302,13 @@ Available commands are:
             elif not args.description:
                 self._say_error("Description of the card is missing.\n  NOTE: It is not originally required by Trello.")
             out = []
-            for t_list in self._client.get_lists(args.add):
+            for t_list in self._client.get_lists(*self._get_ids(args.add, TrololoIdMapper.S_LIST)):
                 out.append('New card has been added to "{}'.format(t_list.name)[:79] + '"')
                 card = t_list.add_card(name=args.title, description=args.description)
                 self._datamapper.add_card(card)
                 if args.label:
                     print("Adding labels")
-                    card.add_labels(*self._client.get_arg_list(args.label))
+                    card.add_labels(*self._get_ids(args.label, TrololoIdMapper.S_LABEL))
             self._datamapper.save(bool(out))
             print(os.linesep.join(out))
 
