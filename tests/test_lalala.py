@@ -2,7 +2,7 @@
 Test lalala library.
 """
 
-from trololo.lalala import TrololoObject
+from trololo.lalala import TrololoObject, TrololoAction
 
 
 class TestLalalaLib(object):
@@ -39,3 +39,12 @@ class TestLalalaLib(object):
         """
 
         assert TrololoObject("/tmp")._uncamel("OppaGangnamStyle") == "oppa_gangnam_style"
+
+    def test_action_object(self):
+        """
+        Test TrololoAction object.
+
+        :return:
+        """
+        text = "IRQ dropout"
+        assert TrololoAction.load(None, {"data": {"text": text}}).get_text() == text
