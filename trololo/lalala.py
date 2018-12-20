@@ -13,12 +13,26 @@ class TrololoObject(object):
     _re_gr = re.compile(r"(.)([A-Z][a-z]+)")
     _re_sb = re.compile(r"([a-z0-9])([A-Z])")
 
-    __attrs__ = []
-
     def __init__(self, client, **kwargs):
         self._client = client
-        for attr in self.__attrs__:
-            setattr(self, self._uncamel(attr), kwargs.get(attr))
+        self.__to_obj(kwargs)
+
+    def __to_obj(self, data, obj=None):
+        """
+        JSON to object.
+
+        :param data:
+        :param obj:
+        :return:
+        """
+        if obj is None:
+            obj = self
+        for key, value in data.items():
+            if isinstance(value, dict):
+                setattr(obj, key, type(key, (), {}))
+                self.__to_obj(value, getattr(obj, key))
+            else:
+                setattr(obj, key, value)
 
     def _uncamel(self, name):
         """
@@ -44,14 +58,12 @@ class TrololoLabel(TrololoObject):
     """
     Trello label on the board.
     """
-    __attrs__ = ["id", "color", "name"]
 
 
 class TrololoAction(TrololoObject):
     """
     Trello comment (action).
     """
-    __attrs__ = ["id", "type", "date", "data"]
 
     def get_text(self):
         """
@@ -59,14 +71,13 @@ class TrololoAction(TrololoObject):
 
         :return:
         """
-        return self.data.get("text", "* empty *")
+        return self.data.text
 
 
 class TrololoCard(TrololoObject):
     """
     Trello card on the trello list of the board.
     """
-    __attrs__ = ["id", "name", "url", "desc", "shortUrl", "dateLastActivity", "closed"]
 
     def get_actions(self):
         """
@@ -113,7 +124,6 @@ class TrololoList(TrololoObject):
     """
     Trello list on the trello Board.
     """
-    __attrs__ = ["id", "name", "closed", "idBoard"]
 
     def get_cards(self):
         """
@@ -156,7 +166,6 @@ class TrololoBoard(TrololoObject):
     """
     Trello Board.
     """
-    __attrs__ = ["id", "name", "desc", "shortUrl", "url", "dateLastView", "lists"]
 
     def get_lists(self):
         """
