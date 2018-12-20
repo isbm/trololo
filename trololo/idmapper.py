@@ -5,6 +5,7 @@ instead of remembering those cumbersome IDs.
 
 import pickle
 import os
+import sys
 
 import trololo.exceptions
 from trololo.lalala import TrololoBoard, TrololoAction, TrololoLabel, TrololoCard, TrololoList
@@ -29,8 +30,10 @@ class TrololoIdMapper(object):
             "cards": {},
             "labels": {},
             "actions": {},
+            "id": {},
         }
         self.__path = os.path.join(path, self.DATA_MAPPER_FILE)
+        self.load()
 
     def add_board(self, board: TrololoBoard) -> None:
         """
@@ -77,6 +80,21 @@ class TrololoIdMapper(object):
         """
         self.__datamap["actions"].setdefault(action.name, set()).add(action.id)
 
+    def is_id(self, text):
+        """
+        Check if the text is actually an ID.
+
+        :param text:
+        :return:
+        """
+        try:
+            int(text, 16)
+            _id = True
+        except (ValueError, TypeError):
+            _id = False
+
+        return _id
+
     def get_id_by_name(self, text):
         """
         Lookup data mapper for the text occurrences and find
@@ -88,27 +106,35 @@ class TrololoIdMapper(object):
         :param text:
         :return:
         """
-        try:
-            int(text, 16)
-            is_id = True
-        except (ValueError, TypeError):
-            is_id = False
 
         found = False
-        ret = dict(zip(list(self.__datamap.keys()) + ["id"], [set() for _ in range(len(self.__datamap))]))
-        if not is_id:
+        ret = dict(zip(list(self.__datamap.keys()), [set() for _ in range(len(self.__datamap))]))
+        if not self.is_id(text):
             for section in self.__datamap:
-                for txt, ids in section.items():
+                for txt, ids in self.__datamap[section].items():
                     if txt.startswith(text):
                         ret[section].update(ids)
+                        if len(ret[section]) > 1:
+                            # Nope, try just IDs instead.
+                            raise trololo.exceptions.DataMapperError("More than one ID references to the same text")
                         found = True
         else:
             ret["id"].add(text)
+            found = True
 
         if not found:
             raise trololo.exceptions.DataMapperError("No corresponding ID has been found.")
 
         return ret
+
+    def take_from(self, search_result, section):
+        """
+        Finds an ID from the search result by section.
+
+        :param search_result:
+        :return:
+        """
+        return (search_result.get("id") or search_result[section] or set(' ')).pop().strip()
 
     def save(self):
         """
@@ -117,8 +143,8 @@ class TrololoIdMapper(object):
         :return:
         """
         try:
-            with open(self.__path, "w") as dmh:
-                pickle.dump(dmh, self.__datamap)
+            with open(self.__path, "wb") as dmh:
+                pickle.dump(self.__datamap, dmh)
         except Exception as ex:
             raise trololo.exceptions.DataMapperError("Error while saving data map: {}".format(ex))
 
@@ -129,7 +155,7 @@ class TrololoIdMapper(object):
         :return:
         """
         try:
-            with open(self.__path, "r") as dmh:
+            with open(self.__path, "rb") as dmh:
                 self.__datamap = pickle.load(dmh)
         except Exception as ex:
-            raise trololo.exceptions.DataMapperError("Error while loading data map: {}".format(ex))
+            sys.stderr.write("Error while loading mapper: {}\n".format(ex))
